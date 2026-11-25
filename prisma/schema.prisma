@@ -1,0 +1,93 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Origem {
+  SITE
+  SDR
+}
+
+enum Prioridade {
+  Alta
+  Media @map("Média")
+  Baixa
+}
+
+enum StatusIA {
+  Pendente
+  Processado
+  Erro
+}
+
+model Sdr {
+  email     String  @id @db.VarChar(255)
+  nome      String  @db.VarChar(150)
+  senhaHash String? @map("senha_hash") @db.VarChar(255)
+  cargo     String? @db.VarChar(100)
+
+  leadsResponsavel Lead[]     @relation("Responsavel")
+  leadsCadastrados Lead[]     @relation("Cadastra")
+  operacoes        Operacao[]
+
+  @@map("sdr")
+}
+
+model Lead {
+  id           String   @id @default(uuid()) @db.Char(36)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  nomePessoa       String  @map("nome_pessoa") @db.VarChar(150)
+  nomeEmpresa      String  @map("nome_empresa") @db.VarChar(150)
+  email            String? @db.VarChar(255)
+  whatsapp         String? @db.VarChar(20)
+  descricao        String? @db.Text
+  solucaoInteresse String? @map("solucao_interesse") @db.VarChar(100)
+  nicho            String? @db.VarChar(100)
+  origem           Origem
+  situacao         String  @default("Novo") @db.VarChar(50)
+
+  responsavelSdr String? @map("responsavel_sdr") @db.VarChar(255)
+  cadastradoPor  String? @map("cadastrado_por") @db.VarChar(255)
+
+  responsavel Sdr? @relation("Responsavel", fields: [responsavelSdr], references: [email], onDelete: SetNull)
+  cadastrador Sdr? @relation("Cadastra", fields: [cadastradoPor], references: [email], onDelete: Restrict)
+
+  analises  Ia[]
+  operacoes Operacao[]
+
+  @@map("leads")
+}
+
+model Ia {
+  id                String      @id @default(uuid()) @db.Char(36)
+  leadId            String      @map("lead_id") @db.Char(36)
+  prioridade        Prioridade?
+  justificativa     String?     @db.Text
+  abordagem         String?     @db.Text
+  statusIA          StatusIA    @default(Pendente) @map("status_ia")
+  dataProcessamento DateTime?   @map("data_processamento")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("ia")
+}
+
+model Operacao {
+  sdrEmail          String    @map("sdr_email") @db.VarChar(255)
+  leadId            String    @map("lead_id") @db.Char(36)
+  tentativasContato Int       @default(0) @map("tentativas_contato")
+  ultimoContato     DateTime? @map("ultimo_contato")
+  proximoContato    DateTime? @map("proximo_contato")
+
+  sdr  Sdr  @relation(fields: [sdrEmail], references: [email], onDelete: Cascade)
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@id([sdrEmail, leadId])
+  @@map("operacao")
+}
