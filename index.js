@@ -113,7 +113,7 @@ async function main() {
   await prisma.lead.deleteMany();
   await prisma.sdr.deleteMany();
 
-  // 1. INSERT INTO
+  // INSERT INTO
   console.log(" Cadastrando SDRs, leads, análises e operações...");
   const leadsComId = leads.map((l) => ({ id: randomUUID(), ...l }));
   const idPorEmail = Object.fromEntries(leadsComId.map((l) => [l.email, l.id]));
@@ -160,7 +160,7 @@ async function main() {
   );
   console.log("");
 
-  // 3. SELECT ... WHERE
+  // SELECT ... WHERE
   console.log(" 3. [SELECT WHERE] Operações do Eduardo:");
   const doEduardo = await prisma.operacao.findMany({
     where: { sdrEmail: "eduardo.barros@consultoriafocus.com" },
@@ -183,7 +183,7 @@ async function main() {
   });
   console.log(" Análise atualizada!\n");
 
-  // 5. DELETE FROM
+  // DELETE FROM
   console.log(" 5. [DELETE FROM] Removendo o lead do Luis...");
   await prisma.lead.delete({ where: { id: idPorEmail["luis@padariamodelo.com"] } });
   console.log(" Lead removido!");

@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.post("/api/webhooks/leads", async (req, res) => {
   try {
-    // 1. Garante que o Content-Type seja application/json
+    // garante que o Content-Type seja application/json
     if (!req.is("application/json")) {
       return res.status(415).json({
         erro: "Content-Type inválido. Utilize application/json.",
@@ -52,7 +52,7 @@ app.post("/api/webhooks/leads", async (req, res) => {
     // validação dos dados
     const leadValidado = validarLead(dadosRecebidos);
 
-    // 3.5 Verifica se já existe lead com o mesmo e-mail ou WhatsApp
+    // verifica se já existe lead com o mesmo e-mail ou WhatsApp
     const condicoesBusca = [];
     if (leadValidado.email) condicoesBusca.push({ email: leadValidado.email });
     if (leadValidado.whatsapp) condicoesBusca.push({ whatsapp: leadValidado.whatsapp });
@@ -99,6 +99,7 @@ app.post("/api/webhooks/leads", async (req, res) => {
 app.get("/api/leads", async (req, res) => {
   const leads = await prisma.lead.findMany({
     orderBy: { criadoEm: "desc" },
+    include:{ia: true},
   });
   return res.json(leads);
 });
@@ -106,5 +107,5 @@ app.get("/api/leads", async (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Servidor do leadflow rodando em http://localhost:${PORT}`);
-  // pra acessar, coloca o link/api/leads
+  // pra acessar, coloca o linkdecima/api/leads 
 });
